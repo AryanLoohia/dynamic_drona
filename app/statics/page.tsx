@@ -51,36 +51,35 @@ export default function Statics(){
     setModel1VideoPath(undefined);
     setModel2VideoPath(undefined);
   
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    const formData = new FormData();
+    formData.append('file', file);
   
+    try {
       const response = await fetch('http://localhost:5001/upload', {
         method: 'POST',
         body: formData,
       });
   
       const data = await response.json();
+      console.log('API Response:', data);
   
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to process file');
+      if (data.success) {
+        // Create URL parameters including the object descriptions
+        const params = new URLSearchParams({
+          model1Image: data.model1_image_path,
+          model1Video: data.model1_video_path,
+          model2Image: data.model2_image_path,
+          model2Video: data.model2_video_path,
+          depthImage: data.depth_image_path,
+          depthVideo: data.depth_video_path,
+          objectDescriptions: encodeURIComponent(JSON.stringify(data.object_descriptions))
+        });
+  
+        console.log('Navigation params:', params.toString());
+        router.push(`/results?${params.toString()}`);
       }
-  
-      let queryParams = "";
-  
-      // Redirect based on uploaded file type
-      if (data.model1_image_path && data.model2_image_path) {
-        queryParams = `?model1Image=${data.model1_image_path}&model2Image=${data.model2_image_path}`;
-      } else if (data.model1_video_path && data.model2_video_path) {
-        queryParams = `?model1Video=${data.model1_video_path}&model2Video=${data.model2_video_path}`;
-      }
-  
-      // Redirect to results page with query params
-      router.push(`/results${queryParams}`);
-  
     } catch (error) {
-      console.error('Error:', error);
-      alert(error instanceof Error ? error.message : 'An error occurred');
+      console.error('Upload error:', error);
     } finally {
       setLoading(false);
     }

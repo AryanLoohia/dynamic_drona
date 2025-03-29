@@ -14,6 +14,8 @@ export default function Streaming() {
   const [showModel1, setShowModel1] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [streamedDepthImage, setStreamedDepthImage] = useState<string | null>(null);
+  const [showModel, setShowModel] = useState<"model1" | "model2" | "depth">(showModel1 ? "model1" : "model2");
 
   useEffect(() => {
     setMounted(true);
@@ -49,6 +51,7 @@ export default function Streaming() {
             }
             setStreamedImage1(data.model1_frame ? `data:image/jpeg;base64,${data.model1_frame}` : null);
             setStreamedImage2(data.model2_frame ? `data:image/jpeg;base64,${data.model2_frame}` : null);
+            setStreamedDepthImage(data.depth_frame ? `data:image/jpeg;base64,${data.depth_frame}` : null);
           } catch (error) {
             console.error("Error parsing stream data:", error);
             setError("Failed to process stream data");
@@ -87,6 +90,7 @@ export default function Streaming() {
     setIsStreaming(false);
     setStreamedImage1(null);
     setStreamedImage2(null);
+    setStreamedDepthImage(null);
     setError(null);
   };
 
@@ -148,35 +152,50 @@ export default function Streaming() {
             {/* Model Selection Tabs */}
             <div className="flex space-x-4 mb-6 border-b border-gray-700">
               <button
-                onClick={() => setShowModel1(true)}
+                onClick={() => setShowModel("model1")}
                 className={`pb-2 px-4 text-sm font-medium transition-colors duration-200 relative ${
-                  showModel1
+                  showModel === "model1"
                     ? "text-red-400 border-b-2 border-red-400"
                     : "text-gray-400 hover:text-gray-300"
                 }`}
               >
                 Hazard Detection
-                {showModel1 && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-400"></span>}
+                {showModel === "model1" && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-400"></span>}
               </button>
               <button
-                onClick={() => setShowModel1(false)}
+                onClick={() => setShowModel("model2")}
                 className={`pb-2 px-4 text-sm font-medium transition-colors duration-200 relative ${
-                  !showModel1
+                  showModel === "model2"
                     ? "text-red-400 border-b-2 border-red-400"
                     : "text-gray-400 hover:text-gray-300"
                 }`}
               >
                 Crane Defects
-                {!showModel1 && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-400"></span>}
+                {showModel === "model2" && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-400"></span>}
+              </button>
+              <button
+                onClick={() => setShowModel("depth")}
+                className={`pb-2 px-4 text-sm font-medium transition-colors duration-200 relative ${
+                  showModel === "depth"
+                    ? "text-red-400 border-b-2 border-red-400"
+                    : "text-gray-400 hover:text-gray-300"
+                }`}
+              >
+                Depth Map
+                {showModel === "depth" && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-400"></span>}
               </button>
             </div>
 
             {/* Live Streaming Display */}
             <div className="rounded-lg overflow-hidden shadow-lg">
-              {showModel1 ? (
-                streamedImage1 && <img src={streamedImage1} alt="Hazard Detection" className="w-full" />
-              ) : (
-                streamedImage2 && <img src={streamedImage2} alt="Crane Defects" className="w-full" />
+              {showModel === "model1" && streamedImage1 && (
+                <img src={streamedImage1} alt="Hazard Detection" className="w-full" />
+              )}
+              {showModel === "model2" && streamedImage2 && (
+                <img src={streamedImage2} alt="Crane Defects" className="w-full" />
+              )}
+              {showModel === "depth" && streamedDepthImage && (
+                <img src={streamedDepthImage} alt="Depth Map" className="w-full" />
               )}
             </div>
           </div>
